@@ -34,6 +34,18 @@ RUN echo "dicdir = /usr/local/lib/mecab/dic/ipadic" > /usr/local/etc/mecabrc
 RUN conda update --all -y && conda install gensim
 
 RUN pip install mecab-python3 zenhan
+RUN pip install chainer
+
+# xgboost
+RUN wget -q https://github.com/dmlc/xgboost/archive/0.47.tar.gz \
+        && tar -xzf 0.47.tar.gz \
+        && rm 0.47.tar.gz \
+        && cd xgboost-0.47 \
+        && make -j4 \
+        && cd python-package \
+        && python setup.py install \
+        && cd ../.. \
+        && rm -rf xgboost*
 
 RUN python -c "import matplotlib.pyplot"
 
