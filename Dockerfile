@@ -55,7 +55,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # setup python/conda
-USER jovyan
+USER $NB_USER
+
+# install conda packages
+RUN conda install --yes \
+        gensim \
+        && \
+    conda clean -yt
 
 # initialize matplotlib
 RUN python -c "import matplotlib.pyplot"
@@ -70,12 +76,16 @@ RUN wget -q https://github.com/dmlc/xgboost/archive/0.47.tar.gz && \
     make $build_opt && \
     cd python-package && \
     python setup.py install
+# workaround for xgboost
+RUN cd /opt/conda/lib && \
+    mv libgomp.so.1.0.0 libgomp.so.1.0.0.orig && \
+    ln -s /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0 .
 
 # install tensorflow
 #COPY tensorflow-0.7.1-cp34-none-linux_x86_64.whl .
 #RUN \
 RUN wget -q https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.7.1-cp34-none-linux_x86_64.whl && \
-    ln tensorflow-0.7.1-cp34-none-linux_x86_64.whl tensorflow-0.7.1-cp35-none-linux_x86_64.whl && \
+    ln -s tensorflow-0.7.1-cp34-none-linux_x86_64.whl tensorflow-0.7.1-cp35-none-linux_x86_64.whl && \
     pip install tensorflow-0.7.1-cp35-none-linux_x86_64.whl
 RUN pip install skflow
 
@@ -85,17 +95,11 @@ RUN pip install \
         mecab-python3 \
         zenhan
 
-# install conda packages
-RUN conda install --yes \
-        gensim \
-        && \
-    conda clean -yt
-
 # clean up
 USER root
 RUN rm -rf xgboost* tensorflow*
 
 # run
-USER jovyan
+USER $NB_USER
 WORKDIR /work
 CMD ["ipython"]
