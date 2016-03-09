@@ -87,12 +87,27 @@ RUN \
 #RUN wget -q https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.7.1-cp34-none-linux_x86_64.whl && \
     ln -s tensorflow-0.7.1-cp34-none-linux_x86_64.whl tensorflow-0.7.1-cp35-none-linux_x86_64.whl && \
     pip install tensorflow-0.7.1-cp35-none-linux_x86_64.whl
-RUN pip install skflow
+
+# install graphviz
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        graphviz \
+        graphviz-dev \
+        pkg-config \
+        && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # install pypi packages
+USER $NB_USER
 RUN pip install \
         chainer \
+        keras \
         mecab-python3 \
+        nxpd \
+        pydot2 \
+        pygraphviz \
+        skflow \
         zenhan
 
 # clean up
@@ -101,5 +116,5 @@ RUN rm -rf xgboost* tensorflow*
 
 # run
 USER $NB_USER
-WORKDIR /work
-CMD ["ipython"]
+WORKDIR /home/$NB_USER
+CMD "/bin/bash"
